@@ -1,0 +1,18 @@
+{
+  "benchmark": "inverted_index",
+  "num_docs": 200,
+  "num_queries": 20,
+  "build_p50_ms": 0.06137497257441282,
+  "build_p95_ms": 0.09795901132747531,
+  "build_p99_ms": 0.12091704411432147,
+  "search_p50_ms": 0.08116697426885366,
+  "search_p95_ms": 0.1295830006711185,
+  "search_p99_ms": 0.1295830006711185,
+  "index_stats": {
+    "total_documents": 200,
+    "total_terms": 1,
+    "total_postings": 79,
+    "avg_doc_length": 319.005,
+    "avg_postings_per_term": 79.0
+  }
+}

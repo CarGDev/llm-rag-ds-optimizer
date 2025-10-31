@@ -1,0 +1,31 @@
+{
+  "benchmark": "end2end",
+  "num_docs": 500,
+  "num_queries": 50,
+  "build_p50_ms": 0.045666005462408066,
+  "build_p95_ms": 0.07779203588142991,
+  "build_p99_ms": 0.09804102592170238,
+  "search_p50_ms": 0.3108330420218408,
+  "search_p95_ms": 0.35862502409145236,
+  "search_p99_ms": 0.5198749713599682,
+  "pipeline_stats": {
+    "hnsw": {
+      "num_vectors": 500,
+      "num_layers": 4,
+      "entry_point": 162,
+      "entry_level": 3,
+      "total_edges": 0,
+      "avg_degree": 0.0
+    },
+    "inverted_index": {
+      "total_documents": 500,
+      "total_terms": 1,
+      "total_postings": 478,
+      "avg_doc_length": 202.296,
+      "avg_postings_per_term": 478.0
+    },
+    "cmsketch_total_count": 50,
+    "cache_size": 50,
+    "cache_tokens": 11571
+  }
+}

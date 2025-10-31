@@ -1,0 +1,61 @@
+# Python and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+papers/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.npy~
+*.log
+
+# Large data files - uncomment if you want to exclude from git
+# data/raw/*.jsonl
+# data/embeddings/*.npy
+
+# Keep data directory structure but allow selective tracking
+# Track data/README.md, data/dataset_cards/, and smaller processed files
+# Large raw datasets can be excluded individually if needed

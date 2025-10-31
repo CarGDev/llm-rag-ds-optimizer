@@ -1,0 +1,23 @@
+{
+  "benchmark": "kv_cache",
+  "num_sequences": 100,
+  "tokens_per_seq": 500,
+  "page_size": 512,
+  "attach_p50_ms": 0.001834006980061531,
+  "attach_p95_ms": 0.0019170111045241356,
+  "attach_p99_ms": 0.0019579892978072166,
+  "get_p50_ms": 0.0007499475032091141,
+  "get_p95_ms": 0.0007500057108700275,
+  "get_p99_ms": 0.0007919734343886375,
+  "detach_p50_ms": 0.002540997229516506,
+  "detach_p95_ms": 0.0025830231606960297,
+  "detach_p99_ms": 0.001292035449296236,
+  "cache_stats": {
+    "total_sequences": 0,
+    "total_pages": 10000,
+    "allocated_pages": 0,
+    "free_pages": 10000,
+    "prefix_shares": 0,
+    "prefix_map_size": 0
+  }
+}

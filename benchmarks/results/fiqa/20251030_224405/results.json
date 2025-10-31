@@ -1,0 +1,36 @@
+[
+  {
+    "corpus": "fiqa",
+    "size": 10000,
+    "ef_search": 50,
+    "M": 8,
+    "num_queries": 20,
+    "build_p50_ms": 0.21912500960752368,
+    "build_p95_ms": 0.5533749936148524,
+    "build_p99_ms": 1.0475419694557786,
+    "search_p50_ms": 15.307458001188934,
+    "search_p95_ms": 19.424915954004973,
+    "search_p99_ms": 19.424915954004973,
+    "avg_build_time_ms": 0.2658582097443286,
+    "avg_search_time_ms": 15.329126940923743,
+    "qps": 65.2352872967819,
+    "repetition": 0
+  },
+  {
+    "corpus": "fiqa",
+    "size": 25000,
+    "ef_search": 50,
+    "M": 8,
+    "num_queries": 20,
+    "build_p50_ms": 0.47675002133473754,
+    "build_p95_ms": 1.1900420067831874,
+    "build_p99_ms": 2.988874970469624,
+    "search_p50_ms": 36.14875004859641,
+    "search_p95_ms": 58.71162499533966,
+    "search_p99_ms": 58.71162499533966,
+    "avg_build_time_ms": 0.5872584559116513,
+    "avg_search_time_ms": 37.77570431120694,
+    "qps": 26.47204117656463,
+    "repetition": 0
+  }
+]

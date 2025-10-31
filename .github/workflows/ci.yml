@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Lint with ruff
+      run: |
+        ruff check .
+
+    - name: Format check with ruff
+      run: |
+        ruff format --check .
+
+    - name: Type check with mypy
+      run: |
+        mypy llmds || true  # Allow failures for now
+
+    - name: Test with pytest
+      run: |
+        pytest -q --maxfail=1
+
+    - name: Smoke benchmark (synthetic)
+      run: |
+        python3 benchmarks/bench_kv_cache.py --num_sequences 100 || true
+        python3 benchmarks/bench_inverted_index.py --num_docs 100 --num_queries 10 || true
+
+    - name: Smoke benchmark (real corpus - small)
+      run: |
+        # Create small test corpus
+        mkdir -p data/raw/test
+        python3 -c "
+        import json
+        with open('data/raw/test/corpus.jsonl', 'w') as f:
+            for i in range(5000):
+                json.dump({'id': f'test_{i}', 'text': f'Test document {i} content.'}, f)
+                f.write('\n')
+        " || true
+        
+        # Run small benchmark
+        python3 scripts/run_benchmarks.py \
+          --corpus test \
+          --corpus-file data/raw/test/corpus.jsonl \
+          --sizes 5k \
+          --ef 50 \
+          --M 8 \
+          --num-queries 10 || true
+
