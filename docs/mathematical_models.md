@@ -95,6 +95,10 @@ The HNSW graph has logarithmic search complexity:
 - **Construction complexity**: \( O(N \log N) \)
 - **Memory complexity**: \( O(N \cdot M) \) where \( M \) is the maximum connections per node
 
+**Return Format**: The `search()` and `_search_layer()` methods return results as `(node_id, distance)` tuples, where:
+- `node_id`: Integer identifier of the vector in the index
+- `distance`: Float representing the L2 distance from the query vector
+
 ---
 
 ## Count-Min Sketch Error Bounds

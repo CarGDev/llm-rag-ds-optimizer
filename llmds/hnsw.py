@@ -1,7 +1,7 @@
 """HNSW (Hierarchical Navigable Small World) for approximate nearest neighbor search."""
 
 import random
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -79,15 +79,18 @@ class HNSW:
 
         candidates: list[tuple[float, int]] = []
         visited = set(entry_points)
+        best_candidates: list[tuple[float, int]] = []
 
         # Initialize candidates with entry points
         for ep in entry_points:
             if ep in self._vectors:
                 dist = self._distance(query, self._vectors[ep])
                 candidates.append((dist, ep))
+                best_candidates.append((dist, ep))
 
         # Sort by distance
         candidates.sort()
+        best_candidates.sort()
 
         # Greedy search
         while candidates:
@@ -101,14 +104,16 @@ class HNSW:
                         if neighbor in self._vectors:
                             neighbor_dist = self._distance(query, self._vectors[neighbor])
                             candidates.append((neighbor_dist, neighbor))
+                            best_candidates.append((neighbor_dist, neighbor))
 
-            # Maintain top-k
+            # Maintain top-ef_search candidates
             candidates.sort()
             if len(candidates) > self.ef_search:
                 candidates = candidates[: self.ef_search]
 
-        # Return top-k results
-        results = [(dist, node_id) for dist, node_id in candidates[:k]]
+        # Sort best candidates and return top-k as (node_id, distance) tuples
+        best_candidates.sort()
+        results = [(node_id, dist) for dist, node_id in best_candidates[:k]]
         return results
 
     def add(self, vec: np.ndarray, vec_id: int) -> None:
@@ -150,7 +155,7 @@ class HNSW:
             candidates = self._search_layer(
                 vec, self.ef_construction, entry_points, self._layers[l]
             )
-            entry_points = [node_id for _, node_id in candidates]
+            entry_points = [node_id for node_id, _ in candidates]
 
         # Insert at all levels up to node's level
         for l in range(min(level, len(self._layers) - 1) + 1):
@@ -162,7 +167,7 @@ class HNSW:
                 candidates = self._search_layer(vec, self.M, entry_points, self._layers[l])
 
             # Create connections
-            neighbors = [node_id for _, node_id in candidates[: self.M]]
+            neighbors = [node_id for node_id, _ in candidates[: self.M]]
 
             if vec_id not in self._layers[l]:
                 self._layers[l][vec_id] = []
@@ -266,4 +271,3 @@ class HNSW:
             "total_edges": total_edges,
             "avg_degree": total_edges / len(self._vectors) if self._vectors else 0.0,
         }
-

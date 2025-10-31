@@ -173,8 +173,8 @@ For component-level testing on small synthetic data:
 | └─ Search (BM25) | 0.081 | 0.130 | 0.130 |
 | └─ Build | 0.061 | 0.098 | 0.121 |
 | **HNSW** | | | |
-| └─ Search (ANN) | 0.0019 | 0.0021 | 0.0043 |
-| └─ Build | 0.0027 | 0.0043 | 0.0072 |
+| └─ Search (ANN) | 0.0020 | 0.0028 | 0.0075 |
+| └─ Build | 0.0028 | 0.0085 | 0.0501 |
 
 ### Key Findings
 
@@ -187,7 +187,7 @@ For component-level testing on small synthetic data:
 
 **Synthetic Benchmarks (component-level):**
 - **KV Cache**: Extremely fast operations (< 0.003ms) for all cache operations
-- **HNSW**: Sub-millisecond search latency (0.002ms P50) with excellent scalability on small synthetic data
+- **HNSW**: Sub-millisecond search latency (0.0020ms P50) with excellent scalability on small synthetic data. **Fixed**: Return format now consistently provides `(node_id, distance)` tuples, ensuring proper integration with retrieval pipelines.
 - **Inverted Index**: Fast BM25 search (~0.08ms P50) with compressed postings
 - **End-to-End RAG**: Complete pipeline latency ~0.31ms P50 on synthetic data
 

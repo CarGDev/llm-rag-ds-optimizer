@@ -132,7 +132,7 @@ class RetrievalPipeline:
             min_dense = min(dist for _, dist in dense_results) if dense_results else 0.0
             dense_range = max_dense - min_dense if max_dense > min_dense else 1.0
 
-            for doc_id, dist in dense_results:
+            for doc_id, dist in dense_results:  # HNSW.search returns (node_id, distance)
                 # Convert distance to similarity (inverse)
                 normalized = 1.0 - (dist - min_dense) / dense_range if dense_range > 0 else 1.0
                 dense_scores[doc_id] = normalized
