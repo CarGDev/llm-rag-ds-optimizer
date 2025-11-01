@@ -1,0 +1,4 @@
+# file: /Volumes/Carlos_SSD/Documents/projects/masterProjects/llm-ds-optimizer/llmds/hnsw.py
+# hypothesis_version: 6.142.4
+
+[0.0, 1.0, 2.0, 200, 'avg_degree', 'entry_level', 'entry_point', 'num_layers', 'num_vectors', 'total_edges']

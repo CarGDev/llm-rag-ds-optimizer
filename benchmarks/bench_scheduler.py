@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from llmds.scheduler import Scheduler
-from llmds.utils import MetricsCollector, Timer
+from llmds.utils import Timer, memory_profiler
 
 
 def benchmark_scheduler(
@@ -17,46 +17,51 @@ def benchmark_scheduler(
     """Benchmark scheduler operations."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    scheduler = Scheduler(max_batch_size=max_batch_size, max_wait_ms=max_wait_ms)
-    collector = MetricsCollector()
+    # Memory profiling for entire benchmark
+    with memory_profiler() as mem_profiler:
+        scheduler = Scheduler(max_batch_size=max_batch_size, max_wait_ms=max_wait_ms)
 
-    # Submit requests
-    submit_times = []
-    for i in range(num_requests):
-        tokens = (i % 100) + 10  # Vary token counts
-        with Timer() as t:
-            scheduler.submit(tokens=tokens)
-        submit_times.append(t.elapsed * 1000)
+        # Submit requests
+        submit_times = []
+        for i in range(num_requests):
+            tokens = (i % 100) + 10  # Vary token counts
+            with Timer() as t:
+                scheduler.submit(tokens=tokens)
+            submit_times.append(t.elapsed * 1000)
+            # Sample memory periodically
+            if (i + 1) % (num_requests // 10 + 1) == 0:
+                mem_profiler.sample()
 
-    collector.record_latency(sum(submit_times) / len(submit_times))
+        # Get batches
+        batch_times = []
+        batch_sizes = []
+        total_batches = 0
 
-    # Get batches
-    batch_times = []
-    batch_sizes = []
-    total_batches = 0
+        while True:
+            with Timer() as t:
+                batch = scheduler.get_batch(force=False)
+            if batch is None:
+                time.sleep(0.01)
+                batch = scheduler.get_batch(force=True)
+            if batch is None:
+                break
 
-    while True:
-        with Timer() as t:
-            batch = scheduler.get_batch(force=False)
-        if batch is None:
-            time.sleep(0.01)
-            batch = scheduler.get_batch(force=True)
-        if batch is None:
-            break
+            batch_times.append(t.elapsed * 1000)
+            batch_sizes.append(len(batch))
+            scheduler.complete_batch(batch)
+            total_batches += 1
+            
+            # Sample memory periodically
+            if total_batches % 10 == 0:
+                mem_profiler.sample()
 
-        batch_times.append(t.elapsed * 1000)
-        batch_sizes.append(len(batch))
-        scheduler.complete_batch(batch)
-        total_batches += 1
+            if total_batches * max_batch_size >= num_requests:
+                break
 
-        if total_batches * max_batch_size >= num_requests:
-            break
-
-    if batch_times:
-        collector.record_latency(sum(batch_times) / len(batch_times))
+        peak_rss_mb = mem_profiler.get_peak_rss_mb()
+        memory_delta_mb = mem_profiler.get_memory_delta_mb()
 
     stats = scheduler.stats()
-    metrics = collector.get_metrics()
 
     results = {
         "benchmark": "scheduler",
@@ -67,6 +72,8 @@ def benchmark_scheduler(
         "batch_p50_ms": batch_times[len(batch_times) // 2] if batch_times else 0,
         "avg_batch_size": sum(batch_sizes) / len(batch_sizes) if batch_sizes else 0,
         "total_batches": total_batches,
+        "peak_rss_mb": peak_rss_mb,
+        "memory_delta_mb": memory_delta_mb,
         "scheduler_stats": stats,
     }
 

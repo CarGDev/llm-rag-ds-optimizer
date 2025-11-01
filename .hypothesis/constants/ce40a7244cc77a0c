@@ -1,0 +1,4 @@
+# file: /Volumes/Carlos_SSD/Documents/projects/masterProjects/llm-ds-optimizer/llmds/admissions.py
+# hypothesis_version: 6.142.4
+
+[0.0, 10.0, 10000, 'admitted', 'admitted_requests', 'current_qps', 'current_token_rate', 'rejected_requests', 'rejection_rate', 'target_qps', 'token_rate_limit']

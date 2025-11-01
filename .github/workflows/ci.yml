@@ -21,10 +21,22 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install Poetry (optional)
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: false
+        installer-parallel: true
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        # Use Poetry if lock file exists, otherwise use pip requirements
+        if [ -f poetry.lock ] && command -v poetry &> /dev/null; then
+          poetry install --no-interaction --no-root
+        else
+          pip install -r requirements-dev.txt
+        fi
 
     - name: Lint with ruff
       run: |

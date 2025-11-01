@@ -78,6 +78,39 @@ class TestIndexedHeap:
         assert score == 15.0
         assert key_id == 3
 
+    def test_max_heap_decrease_key(self):
+        """Test decrease_key for max-heap (bubbles down)."""
+        heap = IndexedHeap(max_heap=True)
+
+        heap.push(1, 20.0)
+        heap.push(2, 10.0)
+        heap.push(3, 5.0)
+
+        # Decrease key 1 from 20 to 15 (should bubble down)
+        heap.decrease_key(1, 15.0)
+        assert heap.get_score(1) == 15.0
+
+        # Top should still be highest
+        top_score, top_id = heap.peek()
+        assert top_score >= 15.0
+
+    def test_max_heap_increase_key(self):
+        """Test increase_key for max-heap (bubbles up)."""
+        heap = IndexedHeap(max_heap=True)
+
+        heap.push(1, 20.0)
+        heap.push(2, 10.0)
+        heap.push(3, 5.0)
+
+        # Increase key 2 from 10 to 25 (should bubble up to root)
+        heap.increase_key(2, 25.0)
+        assert heap.get_score(2) == 25.0
+
+        # Key 2 should now be at the top
+        top_score, top_id = heap.peek()
+        assert top_id == 2
+        assert top_score == 25.0
+
     def test_duplicate_key_error(self):
         """Test error when pushing duplicate key."""
         heap = IndexedHeap()

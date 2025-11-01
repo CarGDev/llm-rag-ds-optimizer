@@ -1,6 +1,6 @@
 """Retrieval pipeline combining ANN, lexical search, and fusion."""
 
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -28,6 +28,7 @@ class RetrievalPipeline:
         hnsw_ef_search: int = 50,
         token_budget: int = 100000,
         tokenizer: Optional[Tokenizer] = None,
+        seed: Optional[int] = None,
     ):
         """
         Initialize retrieval pipeline.
@@ -39,6 +40,7 @@ class RetrievalPipeline:
             hnsw_ef_search: HNSW efSearch parameter
             token_budget: Token budget for cache
             tokenizer: Tokenizer instance
+            seed: Optional random seed for HNSW reproducibility (default: None)
         """
         self.tokenizer = tokenizer or Tokenizer()
         self.hnsw = HNSW(
@@ -46,10 +48,11 @@ class RetrievalPipeline:
             M=hnsw_M,
             ef_construction=hnsw_ef_construction,
             ef_search=hnsw_ef_search,
+            seed=seed,
         )
         self.inverted_index = InvertedIndex(tokenizer=self.tokenizer)
         self.cmsketch = CountMinSketch(width=2048, depth=4)
-        self.token_cache = TokenLRU(
+        self.token_cache: TokenLRU[str, str] = TokenLRU[str, str](
             token_budget=token_budget,
             token_of=lambda text: self.tokenizer.count_tokens(text),
         )
@@ -111,9 +114,11 @@ class RetrievalPipeline:
             # Parse cached string back to list of tuples
             import ast
             try:
-                return ast.literal_eval(cached)
-            except:
-                return results  # Return computed results if parsing fails
+                parsed_results = ast.literal_eval(cached)
+                if isinstance(parsed_results, list):
+                    return parsed_results
+            except (ValueError, SyntaxError):
+                pass  # Fall through to compute results
 
         # BM25 search
         bm25_results = self.inverted_index.search(query, top_k=top_k * 2)
@@ -166,10 +171,12 @@ class RetrievalPipeline:
             if heap.size() < top_k:
                 heap.push(doc_id, score)
             else:
-                min_score, _ = heap.peek()
-                if min_score is not None and score > min_score:
-                    heap.pop()
-                    heap.push(doc_id, score)
+                peek_result = heap.peek()
+                if peek_result is not None:
+                    min_score, _ = peek_result
+                    if min_score is not None and score > min_score:
+                        heap.pop()
+                        heap.push(doc_id, score)
 
         # Extract results
         results = []

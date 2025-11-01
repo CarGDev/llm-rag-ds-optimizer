@@ -52,6 +52,10 @@ Thumbs.db
 *.npy~
 *.log
 
+# Dependency lock files (keep these for reproducibility)
+# poetry.lock - commit this file for reproducible Poetry installs
+# requirements*.txt - commit these files for reproducible pip installs
+
 # Large data files - uncomment if you want to exclude from git
 # data/raw/*.jsonl
 # data/embeddings/*.npy

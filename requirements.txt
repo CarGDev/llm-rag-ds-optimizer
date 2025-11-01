@@ -1,0 +1,16 @@
+# Production dependencies
+# Generated from pyproject.toml for reproducibility
+# Install with: pip install -r requirements.txt
+#
+# For development dependencies, use: pip install -r requirements-dev.txt
+#
+# Last updated: 2024-10-30
+# Python version: >=3.11
+
+# Core dependencies
+numpy>=1.24.0,<2.0.0
+mmh3>=4.0.0,<5.0.0
+
+# Optional: For dataset loading (install separately if needed)
+# datasets>=2.16.0,<3.0.0
+

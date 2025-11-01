@@ -1,0 +1,4 @@
+# file: /Volumes/Carlos_SSD/Documents/projects/masterProjects/llm-ds-optimizer/llmds/inverted_index.py
+# hypothesis_version: 6.142.4
+
+[0.0, 0.5, 0.75, 1.2, 127, 128, 'avg_doc_length', 'total_documents', 'total_postings', 'total_terms']

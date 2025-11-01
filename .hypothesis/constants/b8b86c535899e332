@@ -1,0 +1,4 @@
+# file: /Volumes/Carlos_SSD/Documents/projects/masterProjects/llm-ds-optimizer/llmds/kv_cache.py
+# hypothesis_version: 6.142.4
+
+[100, 512, 10000, ',', 'allocated_pages', 'free_pages', 'prefix_map_size', 'prefix_shares', 'total_pages', 'total_sequences']

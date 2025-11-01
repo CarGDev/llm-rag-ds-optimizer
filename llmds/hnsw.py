@@ -1,4 +1,12 @@
-"""HNSW (Hierarchical Navigable Small World) for approximate nearest neighbor search."""
+"""HNSW (Hierarchical Navigable Small World) for approximate nearest neighbor search.
+
+Implementation based on:
+    Malkov, Y. A., & Yashunin, D. A. (2018). Efficient and robust approximate nearest 
+    neighbor search using Hierarchical Navigable Small World graphs. IEEE transactions 
+    on pattern analysis and machine intelligence, 42(4), 824-836.
+
+See docs/CITATIONS.md for full citation details.
+"""
 
 import random
 from typing import Any, Optional
@@ -11,6 +19,10 @@ class HNSW:
     Hierarchical Navigable Small World graph for approximate nearest neighbor search.
 
     Implements HNSW with configurable M, efConstruction, and efSearch parameters.
+    
+    Reference:
+        Malkov & Yashunin (2018). Efficient and robust approximate nearest neighbor 
+        search using Hierarchical Navigable Small World graphs.
     """
 
     def __init__(
@@ -20,6 +32,7 @@ class HNSW:
         ef_construction: int = 200,
         ef_search: int = 50,
         ml: float = 1.0 / np.log(2.0),
+        seed: Optional[int] = None,
     ):
         """
         Initialize HNSW index.
@@ -30,12 +43,17 @@ class HNSW:
             ef_construction: Size of candidate set during construction
             ef_search: Size of candidate set during search
             ml: Normalization factor for level assignment
+            seed: Optional random seed for reproducible level assignments.
+                  If None, uses the global random state.
         """
         self.dim = dim
         self.M = M
         self.ef_construction = ef_construction
         self.ef_search = ef_search
         self.ml = ml
+
+        # Instance-level random state for reproducibility
+        self._rng = random.Random(seed) if seed is not None else random
 
         # Layers: list of graphs, each graph is dict[node_id] -> list[neighbor_ids]
         self._layers: list[dict[int, list[int]]] = []
@@ -47,7 +65,7 @@ class HNSW:
     def _random_level(self) -> int:
         """Generate random level for new node."""
         level = 0
-        while random.random() < np.exp(-self.ml) and level < 10:
+        while self._rng.random() < np.exp(-self.ml) and level < 10:
             level += 1
         return level
 

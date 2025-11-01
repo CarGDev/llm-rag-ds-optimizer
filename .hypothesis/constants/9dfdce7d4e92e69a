@@ -1,0 +1,4 @@
+# file: /Volumes/Carlos_SSD/Documents/projects/masterProjects/llm-ds-optimizer/llmds/tokenizer.py
+# hypothesis_version: 6.142.4
+
+[50257, '<', '<bos>', '<eos>', '<pad>', '<unk>', 'a', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'being', 'but', 'by', 'can', 'could', 'did', 'do', 'does', 'for', 'from', 'had', 'has', 'have', 'he', 'i', 'in', 'is', 'it', 'may', 'might', 'must', 'of', 'on', 'or', 'she', 'should', 'that', 'the', 'these', 'they', 'this', 'those', 'to', 'was', 'we', 'were', 'will', 'with', 'would', 'you']

@@ -1,4 +1,11 @@
-"""Compressed inverted index with BM25 scoring."""
+"""Compressed inverted index with BM25 scoring.
+
+Implementation based on:
+    Robertson, S., & Zaragoza, H. (2009). The probabilistic relevance framework: 
+    BM25 and beyond. Foundations and Trends in Information Retrieval, 3(4), 333-389.
+
+See docs/CITATIONS.md for full citation details.
+"""
 
 from collections import defaultdict
 from typing import Any, Optional
@@ -11,6 +18,10 @@ class InvertedIndex:
     Compressed inverted index with varint/zigzag encoding and BM25 scoring.
 
     Stores postings lists with compression and provides BM25 retrieval.
+    
+    Reference:
+        Robertson & Zaragoza (2009). The probabilistic relevance framework: 
+        BM25 and beyond.
     """
 
     def __init__(self, tokenizer: Optional[Tokenizer] = None):

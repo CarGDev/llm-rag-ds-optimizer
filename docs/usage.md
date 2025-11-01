@@ -7,19 +7,35 @@
 ```python
 from llmds import KVCache
 
-# Create cache
-cache = KVCache(page_size=512, max_pages=10000)
+# Create cache with prefix sharing (enabled by default)
+cache = KVCache(page_size=512, max_pages=10000, enable_prefix_sharing=True)
 
-# Attach KV tokens for a sequence
-kv_tokens = [1, 2, 3, 4, 5] * 100  # 500 tokens
-cache.attach(seq_id=1, kv_tokens=kv_tokens, prefix_tokens=[1, 2, 3])
+# Attach KV tokens for a sequence with prefix sharing
+prefix = [1, 2, 3]  # Shared system prompt
+kv_tokens = prefix + [4, 5, 6] * 100  # 500 tokens
+cache.attach(seq_id=1, kv_tokens=kv_tokens, prefix_tokens=prefix)
 
-# Retrieve
+# Second sequence with same prefix - will share pages
+kv_tokens2 = prefix + [7, 8, 9] * 100
+cache.attach(seq_id=2, kv_tokens=kv_tokens2, prefix_tokens=prefix)
+
+# Retrieve (returns deep copy to prevent corruption)
 cached = cache.get(seq_id=1)
 
-# Detach when done
+# Copy-on-write: if you modify shared pages, they are automatically copied
+# Shared pages are read-only until modified, then lazily copied
+
+# Detach when done (reference counting handles shared pages)
 cache.detach(seq_id=1)
+cache.detach(seq_id=2)
 ```
+
+**Copy-on-Write Behavior:**
+- Shared pages (from prefix sharing) are read-only by default
+- Writing different data to a shared page triggers lazy copying
+- Each sequence gets its own copy of modified pages
+- Original shared pages remain unchanged for other sequences
+- `get()` always returns deep copies to prevent external corruption
 
 ### Scheduler
 
@@ -64,8 +80,8 @@ else:
 from llmds import RetrievalPipeline
 import numpy as np
 
-# Create pipeline
-pipeline = RetrievalPipeline(embedding_dim=384)
+# Create pipeline with reproducible HNSW structure
+pipeline = RetrievalPipeline(embedding_dim=384, seed=42)
 
 # Add documents
 for i in range(100):
@@ -131,7 +147,8 @@ hnsw_high_recall = HNSW(
     dim=384,
     M=32,              # More connections
     ef_construction=400,  # More candidates during build
-    ef_search=100      # More candidates during search
+    ef_search=100,      # More candidates during search
+    seed=42             # Reproducible graph structure
 )
 
 # Tune for faster search (lower memory)
@@ -139,8 +156,13 @@ hnsw_fast = HNSW(
     dim=384,
     M=8,               # Fewer connections
     ef_construction=100,
-    ef_search=20       # Fewer candidates
+    ef_search=20,      # Fewer candidates
+    seed=42             # Reproducible graph structure
 )
+
+# Reproducible benchmarks
+hnsw_bench = HNSW(dim=128, M=16, ef_construction=200, ef_search=50, seed=42)
+# Same seed ensures identical graph structure across runs
 ```
 
 ## Benchmarking
@@ -174,6 +196,37 @@ for i in range(100):
 metrics = collector.get_metrics()
 print(f"P95: {metrics.latency_p95:.2f} ms")
 ```
+
+## Memory Profiling
+
+All benchmarks automatically measure peak RSS (Resident Set Size) using `psutil`:
+
+```python
+from llmds.utils import memory_profiler
+import numpy as np
+
+# Memory profiling in your benchmarks
+with memory_profiler() as profiler:
+    # Allocate memory
+    data = np.random.randn(1000, 1000).astype(np.float32)
+    profiler.sample()  # Optional: sample at specific points
+    
+    # More operations
+    result = process_data(data)
+    
+peak_rss_mb = profiler.get_peak_rss_mb()
+memory_delta_mb = profiler.get_memory_delta_mb()
+
+print(f"Peak memory: {peak_rss_mb:.2f} MB")
+print(f"Memory allocated: {memory_delta_mb:.2f} MB")
+```
+
+**Benchmark Results Include:**
+- `peak_rss_mb`: Peak memory usage during benchmark
+- `memory_delta_mb`: Memory allocated during execution (peak - initial)
+- `build_peak_rss_mb`: Peak memory during build/indexing phase (where applicable)
+
+All benchmark scripts automatically include memory profiling - no additional configuration needed.
 
 ## Integration Examples
 

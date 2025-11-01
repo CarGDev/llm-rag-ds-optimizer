@@ -1,0 +1,4 @@
+# file: /Volumes/Carlos_SSD/Documents/projects/masterProjects/llm-ds-optimizer/llmds/retrieval_pipeline.py
+# hypothesis_version: 6.142.4
+
+[0.0, 0.5, 1.0, 200, 384, 2048, 100000, 'cache_size', 'cache_tokens', 'cmsketch_total_count', 'hnsw', 'inverted_index']

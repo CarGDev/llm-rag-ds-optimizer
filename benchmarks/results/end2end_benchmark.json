@@ -1,31 +1,40 @@
 {
   "benchmark": "end2end",
-  "num_docs": 500,
+  "num_docs": 200,
   "num_queries": 50,
-  "build_p50_ms": 0.045666005462408066,
-  "build_p95_ms": 0.07779203588142991,
-  "build_p99_ms": 0.09804102592170238,
-  "search_p50_ms": 0.3108330420218408,
-  "search_p95_ms": 0.35862502409145236,
-  "search_p99_ms": 0.5198749713599682,
+  "build_p50_ms": 1.0927910334430635,
+  "build_p95_ms": 3.064291027840227,
+  "build_p99_ms": 3.925165976397693,
+  "search_p50_ms": 2.646584005560726,
+  "search_p95_ms": 4.711459041573107,
+  "search_p99_ms": 7.350375002715737,
+  "peak_rss_mb": 37.734375,
+  "build_peak_rss_mb": 37.734375,
+  "memory_delta_mb": 0.921875,
+  "mean_recall_10": 0.0,
+  "mean_recall_100": 0.49959999999999993,
+  "recall_10_p50": 0.0,
+  "recall_10_p95": 0.0,
+  "recall_100_p50": 0.5,
+  "recall_100_p95": 0.56,
   "pipeline_stats": {
     "hnsw": {
-      "num_vectors": 500,
+      "num_vectors": 200,
       "num_layers": 4,
-      "entry_point": 162,
+      "entry_point": 30,
       "entry_level": 3,
-      "total_edges": 0,
-      "avg_degree": 0.0
+      "total_edges": 4786,
+      "avg_degree": 23.93
     },
     "inverted_index": {
-      "total_documents": 500,
+      "total_documents": 200,
       "total_terms": 1,
-      "total_postings": 478,
-      "avg_doc_length": 202.296,
-      "avg_postings_per_term": 478.0
+      "total_postings": 189,
+      "avg_doc_length": 217.725,
+      "avg_postings_per_term": 189.0
     },
     "cmsketch_total_count": 50,
-    "cache_size": 50,
-    "cache_tokens": 11571
+    "cache_size": 41,
+    "cache_tokens": 98153
   }
 }

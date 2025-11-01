@@ -102,7 +102,13 @@ def build_indices(
         print(f"Building HNSW index (M={M}, efConstruction={ef_construction})...")
         start_time = time.time()
         
-        hnsw = HNSW(dim=embedding_dim, M=M, ef_construction=ef_construction, ef_search=50)
+        hnsw = HNSW(
+            dim=embedding_dim,
+            M=M,
+            ef_construction=ef_construction,
+            ef_search=50,
+            seed=42,  # Fixed seed for reproducible HNSW structure
+        )
         
         for i, emb in enumerate(embeddings):
             hnsw.add(emb, i)

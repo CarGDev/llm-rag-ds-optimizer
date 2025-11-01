@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from llmds.kv_cache import KVCache
-from llmds.utils import MetricsCollector, Timer
+from llmds.utils import Timer, memory_profiler
 
 
 def benchmark_kv_cache(
@@ -17,40 +17,44 @@ def benchmark_kv_cache(
     """Benchmark KV cache operations."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    cache = KVCache(page_size=page_size, max_pages=10000)
-    collector = MetricsCollector()
+    # Memory profiling for entire benchmark
+    with memory_profiler() as mem_profiler:
+        cache = KVCache(page_size=page_size, max_pages=10000)
 
-    # Benchmark attach
-    attach_times = []
-    for i in range(num_sequences):
-        kv_tokens = list(range(tokens_per_seq))
-        with Timer() as t:
-            cache.attach(seq_id=i, kv_tokens=kv_tokens)
-        attach_times.append(t.elapsed * 1000)  # Convert to ms
+        # Benchmark attach
+        attach_times = []
+        for i in range(num_sequences):
+            kv_tokens = list(range(tokens_per_seq))
+            with Timer() as t:
+                cache.attach(seq_id=i, kv_tokens=kv_tokens)
+            attach_times.append(t.elapsed * 1000)  # Convert to ms
+            # Sample memory periodically
+            if (i + 1) % (num_sequences // 10 + 1) == 0:
+                mem_profiler.sample()
+        
+        attach_peak_rss_mb = mem_profiler.get_peak_rss_mb()
 
-    collector.record_latency(sum(attach_times) / len(attach_times))
+        # Benchmark get
+        get_times = []
+        for i in range(num_sequences):
+            with Timer() as t:
+                cache.get(seq_id=i)
+            get_times.append(t.elapsed * 1000)
+        
+        mem_profiler.sample()
 
-    # Benchmark get
-    get_times = []
-    for i in range(num_sequences):
-        with Timer() as t:
-            cache.get(seq_id=i)
-        get_times.append(t.elapsed * 1000)
-
-    collector.record_latency(sum(get_times) / len(get_times))
-
-    # Benchmark detach
-    detach_times = []
-    for i in range(num_sequences):
-        with Timer() as t:
-            cache.detach(seq_id=i)
-        detach_times.append(t.elapsed * 1000)
-
-    collector.record_latency(sum(detach_times) / len(detach_times))
+        # Benchmark detach
+        detach_times = []
+        for i in range(num_sequences):
+            with Timer() as t:
+                cache.detach(seq_id=i)
+            detach_times.append(t.elapsed * 1000)
+        
+        peak_rss_mb = mem_profiler.get_peak_rss_mb()
+        memory_delta_mb = mem_profiler.get_memory_delta_mb()
 
     # Get statistics
     stats = cache.stats()
-    metrics = collector.get_metrics()
 
     results = {
         "benchmark": "kv_cache",
@@ -66,6 +70,9 @@ def benchmark_kv_cache(
         "detach_p50_ms": detach_times[len(detach_times) // 2],
         "detach_p95_ms": detach_times[int(len(detach_times) * 0.95)],
         "detach_p99_ms": detach_times[int(len(detach_times) * 0.99)],
+        "peak_rss_mb": peak_rss_mb,
+        "attach_peak_rss_mb": attach_peak_rss_mb,
+        "memory_delta_mb": memory_delta_mb,
         "cache_stats": stats,
     }
 

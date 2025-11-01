@@ -16,15 +16,55 @@ Paged memory allocator with slab allocation.
 
 ### `llmds.kv_cache.KVCache`
 
-KV cache with prefix sharing and deduplication.
+KV cache with prefix sharing and deduplication. Implements copy-on-write (COW) for safe prefix sharing.
+
+**Parameters:**
+- `page_size: int = 512` - Size of each KV cache page in tokens
+- `max_pages: int = 10000` - Maximum number of pages to allocate
+- `enable_prefix_sharing: bool = True` - Enable prefix sharing optimization
 
 **Methods:**
-- `attach(seq_id: int, kv_tokens: list, prefix_tokens: Optional[list] = None) -> None`
-- `detach(seq_id: int) -> None`
-- `get(seq_id: int) -> Optional[list]`
-- `stats() -> dict`: Get cache statistics
+- `attach(seq_id: int, kv_tokens: list, prefix_tokens: Optional[list] = None) -> None` - Attach KV cache for a sequence. Uses COW for shared pages.
+- `detach(seq_id: int) -> None` - Detach and free KV cache, with reference counting for shared pages
+- `get(seq_id: int) -> Optional[list]` - Get KV cache (returns deep copy to prevent external modification)
+- `stats() -> dict` - Get cache statistics including shared pages count and reference counts
 
 **Complexity:** O(1) attach/get, O(k) detach where k = pages
+
+**Copy-on-Write Semantics:**
+- Shared pages (from prefix sharing) are read-only until written
+- Writes to shared pages trigger lazy copying (COW)
+- Reference counting ensures shared pages are only freed when all references are released
+- `get()` returns deep copies to prevent external corruption of shared pages
+
+**Safety:** All shared page operations are protected against data corruption through COW and defensive copying.
+
+### `llmds.utils.MemoryProfiler`
+
+Memory profiler for measuring peak RSS (Resident Set Size) during benchmarks.
+
+**Methods:**
+- `start() -> None`: Start memory profiling
+- `sample() -> int`: Sample current RSS and update peak
+- `get_peak_rss_mb() -> float`: Get peak RSS in megabytes
+- `get_peak_rss_bytes() -> int`: Get peak RSS in bytes
+- `get_current_rss_mb() -> float`: Get current RSS in megabytes
+- `get_memory_delta_mb() -> float`: Get memory delta from initial RSS in megabytes
+
+**Context Manager:**
+- `memory_profiler() -> Iterator[MemoryProfiler]`: Context manager for automatic profiling
+
+**Usage:**
+```python
+from llmds.utils import memory_profiler
+
+with memory_profiler() as profiler:
+    # Your code here
+    profiler.sample()  # Optional: sample at specific points
+peak_rss_mb = profiler.get_peak_rss_mb()
+```
+
+**Complexity:** O(1) for all operations
 
 ### `llmds.token_lru.TokenLRU`
 
@@ -40,17 +80,25 @@ Token-aware LRU cache with eviction until budget.
 
 ### `llmds.indexed_heap.IndexedHeap`
 
-Indexed binary heap with decrease/increase-key.
+Indexed binary heap with decrease/increase-key operations. Supports both min-heap and max-heap modes.
+
+**Parameters:**
+- `max_heap: bool = False` - If True, use max-heap (largest score at top), otherwise min-heap
 
 **Methods:**
-- `push(key_id: int, score: float) -> None`
-- `pop() -> tuple[float, int]`
-- `decrease_key(key_id: int, new_score: float) -> None`
-- `increase_key(key_id: int, new_score: float) -> None`
-- `delete(key_id: int) -> tuple[float, int]`
-- `get_score(key_id: int) -> Optional[float]`
+- `push(key_id: int, score: float) -> None` - Add item to heap
+- `pop() -> tuple[float, int]` - Remove and return top element
+- `decrease_key(key_id: int, new_score: float) -> None` - Decrease key value (bubbles down for max-heap, up for min-heap)
+- `increase_key(key_id: int, new_score: float) -> None` - Increase key value (bubbles up for max-heap, down for min-heap)
+- `delete(key_id: int) -> tuple[float, int]` - Remove specific item
+- `get_score(key_id: int) -> Optional[float]` - Get score for key_id
+- `peek() -> Optional[tuple[float, int]]` - View top element without removing
+- `size() -> int` - Get number of elements
+- `is_empty() -> bool` - Check if heap is empty
 
 **Complexity:** O(log n) for all operations
+
+**Note:** Fixed max-heap bubble directions (v0.1.0) - `decrease_key` bubbles down and `increase_key` bubbles up for max-heap.
 
 ### `llmds.scheduler.Scheduler`
 
@@ -89,14 +137,24 @@ Compressed inverted index with BM25 scoring.
 
 ### `llmds.hnsw.HNSW`
 
-Hierarchical Navigable Small World graph.
+Hierarchical Navigable Small World graph for approximate nearest neighbor search.
+
+**Parameters:**
+- `dim: int` - Dimension of vectors
+- `M: int = 16` - Maximum number of connections per node
+- `ef_construction: int = 200` - Size of candidate set during construction
+- `ef_search: int = 50` - Size of candidate set during search
+- `ml: float = 1.0 / log(2.0)` - Normalization factor for level assignment
+- `seed: Optional[int] = None` - Random seed for reproducible graph structure
 
 **Methods:**
-- `add(vec: np.ndarray, vec_id: int) -> None`
-- `search(query: np.ndarray, k: int) -> list[tuple[int, float]]`
-- `stats() -> dict`: Get index statistics
+- `add(vec: np.ndarray, vec_id: int) -> None` - Add vector to index
+- `search(query: np.ndarray, k: int) -> list[tuple[int, float]]` - Search for k nearest neighbors. Returns list of (vector_id, distance) tuples
+- `stats() -> dict` - Get index statistics (num_vectors, num_layers, entry_point, etc.)
 
 **Complexity:** O(log n) search, O(log n × efConstruction) add
+
+**Reproducibility:** When `seed` is provided, each HNSW instance uses its own `random.Random(seed)` state for level assignments, ensuring identical graph structures across runs with the same seed.
 
 ### `llmds.cmsketch.CountMinSketch`
 

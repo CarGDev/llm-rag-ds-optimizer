@@ -50,6 +50,8 @@ def export_to_csv(results: dict, output_file: Path = Path("benchmarks/results/be
             "p50_ms": data.get("attach_p50_ms") or data.get("search_p50_ms") or data.get("batch_p50_ms") or data.get("build_p50_ms") or 0.0,
             "p95_ms": data.get("attach_p95_ms") or data.get("search_p95_ms") or data.get("batch_p95_ms") or data.get("build_p95_ms") or 0.0,
             "p99_ms": data.get("attach_p99_ms") or data.get("search_p99_ms") or data.get("batch_p99_ms") or data.get("build_p99_ms") or 0.0,
+            "peak_rss_mb": data.get("peak_rss_mb", 0.0),
+            "memory_delta_mb": data.get("memory_delta_mb", 0.0),
         }
         
         # Add specific metrics if available
@@ -68,6 +70,10 @@ def export_to_csv(results: dict, output_file: Path = Path("benchmarks/results/be
                 "search_p95_ms": data.get("search_p95_ms", 0),
                 "search_p99_ms": data.get("search_p99_ms", 0),
             })
+        
+        # Add build peak RSS if available
+        if "build_peak_rss_mb" in data:
+            row["build_peak_rss_mb"] = data.get("build_peak_rss_mb", 0.0)
         
         rows.append(row)
     
@@ -174,12 +180,65 @@ def plot_comparison_chart(results: dict, output_dir: Path = Path("benchmarks/fig
         plt.close()
 
 
+def plot_memory_usage(results: dict, output_dir: Path = Path("benchmarks/figures")):
+    """Plot memory usage (peak RSS) by benchmark."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    benchmarks = []
+    peak_rss_values = []
+    memory_delta_values = []
+
+    for name, data in results.items():
+        peak_rss = data.get("peak_rss_mb", 0.0)
+        memory_delta = data.get("memory_delta_mb", 0.0)
+        if peak_rss > 0:
+            benchmarks.append(name)
+            peak_rss_values.append(peak_rss)
+            memory_delta_values.append(memory_delta)
+
+    if benchmarks:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+        
+        # Plot 1: Peak RSS
+        colors1 = plt.cm.plasma(range(len(benchmarks)))
+        bars1 = ax1.barh(benchmarks, peak_rss_values, color=colors1, alpha=0.8)
+        ax1.set_xlabel("Peak RSS (MB)", fontsize=12, fontweight="bold")
+        ax1.set_title("Peak Memory Usage by Benchmark", fontsize=14, fontweight="bold")
+        ax1.grid(True, alpha=0.3, linestyle="--", axis="x")
+        
+        # Add value labels
+        for bar, rss in zip(bars1, peak_rss_values):
+            width = bar.get_width()
+            ax1.text(width, bar.get_y() + bar.get_height()/2, f"{rss:.2f}MB",
+                   ha="left", va="center", fontsize=9, fontweight="bold")
+        
+        # Plot 2: Memory Delta
+        colors2 = plt.cm.coolwarm(range(len(benchmarks)))
+        bars2 = ax2.barh(benchmarks, memory_delta_values, color=colors2, alpha=0.8)
+        ax2.set_xlabel("Memory Delta (MB)", fontsize=12, fontweight="bold")
+        ax2.set_title("Memory Allocation Delta by Benchmark", fontsize=14, fontweight="bold")
+        ax2.grid(True, alpha=0.3, linestyle="--", axis="x")
+        
+        # Add value labels
+        for bar, delta in zip(bars2, memory_delta_values):
+            width = bar.get_width()
+            ax2.text(width, bar.get_y() + bar.get_height()/2, f"{delta:.2f}MB",
+                   ha="left", va="center", fontsize=9, fontweight="bold")
+
+        plt.tight_layout()
+        output_file = output_dir / "memory_usage.png"
+        plt.savefig(output_file, dpi=300, bbox_inches="tight")
+        print(f"Memory usage plot saved to {output_file}")
+        plt.close()
+
+
 if __name__ == "__main__":
     results = load_results()
     if results:
         export_to_csv(results)
         plot_latency_distribution(results)
         plot_comparison_chart(results)
+        plot_memory_usage(results)
         print(f"\nProcessed {len(results)} benchmark results")
     else:
         print("No benchmark results found. Run benchmarks first.")

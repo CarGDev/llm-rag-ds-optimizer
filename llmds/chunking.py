@@ -1,13 +1,13 @@
 """Text chunking utilities for RAG."""
 
-from typing import Iterator
+from typing import Any, Iterator, Optional
 
 
 def chunk_text(
     text: str,
     chunk_size: int = 512,
     overlap: int = 50,
-    tokenizer=None,
+    tokenizer: Optional[Any] = None,
 ) -> Iterator[str]:
     """
     Chunk text into overlapping segments.
@@ -34,11 +34,11 @@ def chunk_text(
 
 
 def chunk_documents(
-    documents: Iterator[dict],
+    documents: Iterator[dict[str, Any]],
     chunk_size: int = 512,
     overlap: int = 50,
-    tokenizer=None,
-) -> Iterator[dict]:
+    tokenizer: Optional[Any] = None,
+) -> Iterator[dict[str, Any]]:
     """
     Chunk documents into smaller segments.
 

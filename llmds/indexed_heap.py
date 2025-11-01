@@ -121,10 +121,10 @@ class IndexedHeap:
 
     def decrease_key(self, key_id: int, new_score: float) -> None:
         """
-        Decrease the key for an item (min-heap) or increase for max-heap.
+        Decrease the key value for an item.
 
-        For min-heap, new_score must be < old_score.
-        For max-heap, new_score must be > old_score.
+        For min-heap: new_score must be < old_score (bubble up).
+        For max-heap: new_score must be < old_score (bubble down).
 
         Args:
             key_id: Item identifier
@@ -140,23 +140,27 @@ class IndexedHeap:
         idx = self._pos[key_id]
         old_score, _ = self._heap[idx]
 
-        # Validate direction
-        if self._max_heap:
-            if new_score <= old_score:
-                raise ValueError(f"For max-heap, new_score must be > old_score")
-        else:
-            if new_score >= old_score:
-                raise ValueError(f"For min-heap, new_score must be < old_score")
+        # Validate direction - both heap types decrease when new < old
+        if new_score >= old_score:
+            heap_type = "max-heap" if self._max_heap else "min-heap"
+            raise ValueError(f"For {heap_type}, new_score must be < old_score")
 
         self._heap[idx] = (new_score, key_id)
-        self._bubble_up(idx)
+        
+        # Bubble direction depends on heap type
+        if self._max_heap:
+            # Max-heap: decreasing score means lower priority -> bubble down
+            self._bubble_down(idx)
+        else:
+            # Min-heap: decreasing score means higher priority -> bubble up
+            self._bubble_up(idx)
 
     def increase_key(self, key_id: int, new_score: float) -> None:
         """
-        Increase the key for an item (min-heap) or decrease for max-heap.
+        Increase the key value for an item.
 
-        For min-heap, new_score must be > old_score.
-        For max-heap, new_score must be < old_score.
+        For min-heap: new_score must be > old_score (bubble down).
+        For max-heap: new_score must be > old_score (bubble up).
 
         Args:
             key_id: Item identifier
@@ -172,16 +176,20 @@ class IndexedHeap:
         idx = self._pos[key_id]
         old_score, _ = self._heap[idx]
 
-        # Validate direction
-        if self._max_heap:
-            if new_score >= old_score:
-                raise ValueError(f"For max-heap, new_score must be < old_score")
-        else:
-            if new_score <= old_score:
-                raise ValueError(f"For min-heap, new_score must be > old_score")
+        # Validate direction - both heap types increase when new > old
+        if new_score <= old_score:
+            heap_type = "max-heap" if self._max_heap else "min-heap"
+            raise ValueError(f"For {heap_type}, new_score must be > old_score")
 
         self._heap[idx] = (new_score, key_id)
-        self._bubble_down(idx)
+        
+        # Bubble direction depends on heap type
+        if self._max_heap:
+            # Max-heap: increasing score means higher priority -> bubble up
+            self._bubble_up(idx)
+        else:
+            # Min-heap: increasing score means lower priority -> bubble down
+            self._bubble_down(idx)
 
     def delete(self, key_id: int) -> tuple[float, int]:
         """

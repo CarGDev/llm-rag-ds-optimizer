@@ -26,9 +26,11 @@ The LLM Data Structures Optimizer is organized into several key subsystems:
 ```
 
 **Key Features:**
-- Copy-on-write for prefix sharing
-- Hash-based deduplication
-- Page-level allocation granularity
+- **Copy-on-write (COW)** for prefix sharing - shared pages are read-only until modified, then lazily copied
+- **Reference counting** - shared pages are tracked and only freed when all references are released
+- **Hash-based deduplication** - identical prefixes are automatically detected and shared
+- **Page-level allocation granularity** - efficient memory management with fixed-size pages
+- **Defensive copying** - `get()` returns deep copies to prevent external modification of shared data
 
 ### 2. Scheduler & Batching
 
@@ -36,9 +38,10 @@ The LLM Data Structures Optimizer is organized into several key subsystems:
 ┌─────────────────────────────────────────┐
 │         Scheduler                       │
 │  ┌───────────────────────────────────┐  │
-│  │  IndexedHeap (Priority Queue)      │  │
-│  │  - O(log n) decrease/increase-key  │  │
-│  │  - Priority by remaining tokens   │  │
+│  │  IndexedHeap (Max-Heap Priority Queue) │  │
+│  │  - O(log n) decrease/increase-key     │  │
+│  │  - Priority by remaining tokens       │  │
+│  │  - Fixed bubble directions (v0.1.0)   │  │
 │  └───────────────────────────────────┘  │
 │  ┌───────────────────────────────────┐  │
 │  │  AdmissionController              │  │
@@ -63,6 +66,7 @@ The LLM Data Structures Optimizer is organized into several key subsystems:
 │  │  HNSW (Dense Search)               │  │
 │  │  - Hierarchical graph              │  │
 │  │  - Approximate nearest neighbor    │  │
+│  │  - Reproducible via seed parameter  │  │
 │  └───────────────────────────────────┘  │
 │  ┌───────────────────────────────────┐  │
 │  │  InvertedIndex (BM25)             │  │

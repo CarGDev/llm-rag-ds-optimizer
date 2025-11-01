@@ -1,4 +1,11 @@
-"""Count-Min Sketch for hot query estimation and cache priming."""
+"""Count-Min Sketch for hot query estimation and cache priming.
+
+Implementation based on:
+    Cormode, G., & Muthukrishnan, S. (2005). An improved data stream summary: 
+    the count-min sketch and its applications. Journal of Algorithms, 55(1), 58-75.
+
+See docs/CITATIONS.md for full citation details.
+"""
 
 import mmh3
 from typing import Optional
@@ -9,6 +16,10 @@ class CountMinSketch:
     Count-Min Sketch for frequency estimation with conservative update.
 
     Uses 4 hash functions (via MurmurHash3) and provides error bounds.
+    
+    Reference:
+        Cormode & Muthukrishnan (2005). An improved data stream summary: 
+        the count-min sketch and its applications.
     """
 
     def __init__(self, width: int = 2048, depth: int = 4):
@@ -50,7 +61,7 @@ class CountMinSketch:
         for i in range(self.depth):
             idx = self._hash(item, i)
             if self._table[i][idx] > min_val:
-                self._table[i][idx] = min_val
+                self._table[i][idx] = int(min_val)
 
     def estimate(self, item: str) -> int:
         """

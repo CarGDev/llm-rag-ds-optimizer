@@ -247,6 +247,32 @@ Savings ratio:
 
 For large \( N \), this approaches 100% savings on shared prefixes.
 
+### Copy-on-Write Overhead
+
+With copy-on-write (COW), if \( K \) sequences modify shared pages:
+
+\[
+M_{\text{with\_cow}} = (N - K) \cdot L_{\text{shared}} \cdot d \cdot \text{bytes\_per\_element} + K \cdot L_{\text{modified}} \cdot d \cdot \text{bytes\_per\_element}
+\]
+
+Where:
+- \( L_{\text{shared}} \) = length of shared (unmodified) prefix pages
+- \( L_{\text{modified}} \) = length of modified prefix pages (copied)
+
+**COW Efficiency:**
+- If no sequences modify shared pages (\( K = 0 \)): Maximum savings (shared pages stored once)
+- If all sequences modify (\( K = N \)): No savings (each has own copy)
+- Typical case (\( K < N \)): Partial savings based on modification rate
+
+**Reference Counting:**
+Shared pages are freed when reference count \( r \) reaches zero:
+
+\[
+r = \sum_{i=1}^{N} \mathbf{1}_{\text{seq}_i \text{ references page}}
+\]
+
+Where \( \mathbf{1} \) is the indicator function (1 if sequence references page, 0 otherwise).
+
 ---
 
 ## Token-Aware LRU Eviction
@@ -337,7 +363,29 @@ Request is admitted if \( \text{tokens}(t) \geq 1 \), then \( \text{tokens}(t) \
 
 ## Indexed Binary Heap
 
-The indexed heap supports O(log n) priority updates.
+The indexed heap supports O(log n) priority updates with decrease/increase-key operations. Supports both min-heap and max-heap modes.
+
+### Heap Property
+
+**Min-heap**: `parent_score ≤ child_score`  
+**Max-heap**: `parent_score ≥ child_score`
+
+### Decrease/Increase Key Operations
+
+**Min-heap:**
+- `decrease_key(new_score < old_score)`: Bubbles UP (score decreases → higher priority)
+- `increase_key(new_score > old_score)`: Bubbles DOWN (score increases → lower priority)
+
+**Max-heap:**
+- `decrease_key(new_score < old_score)`: Bubbles DOWN (score decreases → lower priority) ✅ Fixed in v0.1.0
+- `increase_key(new_score > old_score)`: Bubbles UP (score increases → higher priority) ✅ Fixed in v0.1.0
+
+### Complexity
+
+- Push: O(log n)
+- Pop: O(log n)
+- Decrease/Increase key: O(log n)
+- Delete: O(log n)
 
 ### Heap Properties
 
@@ -359,6 +407,93 @@ For a min-heap with \( n \) elements:
 - Extract min: \( O(\log n) \)
 - Update key: \( O(\log n) \) (with index mapping)
 - Decrease key: \( O(\log n) \)
+
+---
+
+## Variance Analysis and Statistical Confidence
+
+Benchmark results include variance analysis to assess measurement reliability and identify flaky configurations.
+
+### Statistical Summary
+
+For a set of \( n \) measurements \( \{x_1, x_2, \ldots, x_n\} \):
+
+**Mean:**
+\[
+\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i
+\]
+
+**Standard Deviation (Sample):**
+\[
+s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
+\]
+
+**Coefficient of Variation:**
+\[
+\text{CV} = \frac{s}{\bar{x}} \times 100\%
+\]
+
+The CV expresses relative variability as a percentage, making it easier to compare variance across different metrics and scales.
+
+### Confidence Intervals
+
+For small samples (\( n < 30 \)), we use the t-distribution for confidence intervals:
+
+\[
+\text{CI} = \bar{x} \pm t_{\alpha/2, n-1} \cdot \frac{s}{\sqrt{n}}
+\]
+
+Where:
+- \( t_{\alpha/2, n-1} \) = t-critical value for \( \alpha \) significance level and \( n-1 \) degrees of freedom
+- For 95% confidence: \( \alpha = 0.05 \), so \( t_{0.025, n-1} \)
+
+For large samples (\( n \geq 30 \)), we approximate with the normal distribution:
+\[
+\text{CI} = \bar{x} \pm z_{\alpha/2} \cdot \frac{s}{\sqrt{n}}
+\]
+
+Where \( z_{\alpha/2} = 1.96 \) for 95% confidence.
+
+### Flaky Benchmark Detection
+
+A benchmark configuration is considered **flaky** if:
+
+\[
+\text{CV} > \text{threshold}
+\]
+
+Where the default threshold is 20% (coefficient of variation > 20%).
+
+**Interpretation:**
+- **CV < 10%**: Excellent reproducibility
+- **10% ≤ CV < 20%**: Good reproducibility
+- **20% ≤ CV < 50%**: Moderate variance (flagged as potentially flaky)
+- **CV ≥ 50%**: High variance (likely flaky, investigate)
+
+### Variance Metrics Reported
+
+For each metric (e.g., `search_p50_ms`, `qps`), we report:
+
+- `{metric}_mean`: Mean across repetitions
+- `{metric}_std`: Standard deviation
+- `{metric}_min`: Minimum value
+- `{metric}_max`: Maximum value
+- `{metric}_ci_lower`: Lower bound of 95% confidence interval
+- `{metric}_ci_upper`: Upper bound of 95% confidence interval
+- `{metric}_cv`: Coefficient of variation (%)
+
+### Example
+
+For a benchmark with 5 repetitions producing search P50 latencies:
+\[
+\{15.2, 15.8, 14.9, 16.1, 15.5\} \text{ ms}
+\]
+
+Results:
+- Mean: \( \bar{x} = 15.5 \) ms
+- Std: \( s = 0.44 \) ms
+- CV: \( \frac{0.44}{15.5} \times 100\% = 2.8\% \) (excellent)
+- 95% CI: \( 15.5 \pm 0.59 \) ms → [14.91, 16.09] ms
 
 ---
 

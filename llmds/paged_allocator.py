@@ -108,7 +108,7 @@ class PagedAllocator:
         free_indices = [i for i, p in enumerate(self._pages) if p is None]
 
         # Simple compaction: move allocated pages to front
-        new_pages = [None] * self.max_pages
+        new_pages: list[bool | None] = [None] * self.max_pages
         for i, idx in enumerate(allocated_indices):
             new_pages[i] = True
 

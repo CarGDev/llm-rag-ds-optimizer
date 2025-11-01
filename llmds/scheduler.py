@@ -2,7 +2,7 @@
 
 import time
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from llmds.indexed_heap import IndexedHeap
 
@@ -128,7 +128,7 @@ class Scheduler:
                 return None
 
         # Build batch from heap
-        batch = []
+        batch: list[int] = []
         temp_heap = IndexedHeap(max_heap=True)
 
         # Pop top requests
