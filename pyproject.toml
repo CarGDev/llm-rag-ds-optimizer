@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Production-grade LLM optimizer for throughput, latency, and memory optimization"
 authors = ["Carlos Gutierrez <cgutierrez44833@ucumberlands.edu>"]
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 packages = [{include = "llmds"}]
 
 [tool.poetry.dependencies]

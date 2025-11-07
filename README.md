@@ -766,7 +766,7 @@ We welcome contributions! This section provides guidelines for contributing to t
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
 ## Code of Conduct
 
