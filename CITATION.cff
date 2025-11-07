@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Gutierrez"
+    given-names: "Carlos"
+    email: "cgutierrez44833@ucumberlands.edu"
+title: "LLM RAG Data Structures Optimizer"
+version: 0.1.0
+doi: 10.5281/zenodo.0000000
+date-released: 2025-01-01
+url: "https://github.com/CarGDev/llm-rag-ds-optimizer"
+

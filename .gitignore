@@ -1,0 +1,68 @@
+# Python and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+papers/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.npy~
+*.log
+
+# Dependency lock files (keep these for reproducibility)
+# poetry.lock - commit this file for reproducible Poetry installs
+# requirements*.txt - commit these files for reproducible pip installs
+
+# Data files - exclude all data files from git (keep only .md files)
+# Exclude everything in data directory
+data/**
+
+# But keep all .md files (documentation)
+!data/**/*.md
+
+# Generated benchmark results (timestamped directories and result files)
+benchmarks/
